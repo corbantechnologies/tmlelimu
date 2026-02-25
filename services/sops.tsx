@@ -1,0 +1,78 @@
+"use client"
+
+import { apiActions } from "@/tools/axios";
+import { AxiosResponse } from "axios";
+import { PaginatedResponse } from "./general";
+
+export interface Sops {
+    id: string;
+    title: string;
+    description: string;
+    file: string;
+    created_at: string;
+    updated_at: string;
+    reference: string;
+    created_by: string;
+    updated_by: string;
+    code: string;
+    is_active: boolean;
+}
+
+interface createSops {
+    title: string;
+    description: string;
+    file: File; //file upload
+}
+
+interface updateSops {
+    id: string;
+    title: string;
+    description: string;
+    file: File; //file upload
+}
+
+export const getSops = async (): Promise<Sops[]> => {
+  const response: AxiosResponse<PaginatedResponse<Sops>> =
+    await apiActions.get(`/api/v1/sops/`);
+  return response.data.results ?? [];
+};
+
+export const getSop = async (reference: string): Promise<Sops> => {
+  const response: AxiosResponse<Sops> =
+    await apiActions.get(`/api/v1/sops/${reference}/`);
+  return response.data;
+};
+
+
+// Authenticated
+export const createSops = async (
+  formData: createSops | FormData,
+  headers: { headers: { Authorization: string } }
+): Promise<Sops> => {
+  const response: AxiosResponse<Sops> = await apiActions.post(
+    `/api/v1/sops/`,
+    formData,
+    headers
+  );
+  return response.data;
+};
+
+export const updateSops = async (
+  reference: string,
+  formData: updateSops | FormData,
+  headers: { headers: { Authorization: string } }
+): Promise<Sops> => {
+  const response: AxiosResponse<Sops> = await apiActions.put(
+    `/api/v1/sops/${reference}/`,
+    formData,
+    headers
+  );
+  return response.data;
+};
+
+export const deleteSops = async (
+  reference: string,
+  headers: { headers: { Authorization: string } }
+): Promise<void> => {
+  await apiActions.delete(`/api/v1/sops/${reference}/`, headers);
+};
