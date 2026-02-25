@@ -64,7 +64,7 @@ export const updateSops = async (
   formData: updateSops | FormData,
   headers: { headers: { Authorization: string } }
 ): Promise<Sops> => {
-  const response: AxiosResponse<Sops> = await apiActions.put(
+  const response: AxiosResponse<Sops> = await apiActions.patch(
     `/api/v1/sops/${reference}/`,
     formData,
     headers
