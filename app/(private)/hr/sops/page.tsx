@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Settings2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useFetchSops, useDeleteSop } from "@/hooks/sops/actions";
+import { useDeleteSop, useFetchAuthSops } from "@/hooks/sops/actions";
 import { Sops } from "@/services/sops";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
@@ -44,32 +44,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import CreateSop from "@/forms/sops/CreateSop";
 import UpdateSop from "@/forms/sops/UpdateSop";
+import useAxiosAuth from "@/hooks/authentication/useAxiosAuth";
 
 export default function HRSopsPage() {
   const { data: session } = useSession();
-  const { data: sopsData, isLoading } = useFetchSops();
+  const { data: sopsData, isLoading, refetch: refetchSops } = useFetchAuthSops();
   const { mutateAsync: deleteSop } = useDeleteSop();
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingSop, setEditingSop] = useState<Sops | null>(null);
   const [deletingSop, setDeletingSop] = useState<Sops | null>(null);
 
-  const getHeaders = () => {
-    // @ts-ignore
-    const token = session?.user?.accessToken || "";
-    return {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-  };
+  const headers = useAxiosAuth()
 
   const handleDelete = async () => {
     if (!deletingSop) return;
     try {
       await deleteSop({
         reference: deletingSop.reference,
-        headers: getHeaders(),
+        headers,
       });
       toast.success("SOP deleted successfully");
     } catch (e: any) {
@@ -101,7 +94,12 @@ export default function HRSopsPage() {
                 Upload a new Standard Operating Procedure to the Elimu system.
               </DialogDescription>
             </DialogHeader>
-            <CreateSop onSuccess={() => setIsCreateOpen(false)} />
+            <CreateSop
+              onSuccess={() => {
+                setIsCreateOpen(false);
+                refetchSops();
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>

@@ -1,7 +1,8 @@
 "use client";
 
-import { getSops, getSop, createSops, updateSops, deleteSops } from "@/services/sops";
+import { getSops, getSop, createSops, updateSops, deleteSops, getAuthSop, getAuthSops } from "@/services/sops";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useAxiosAuth from "../authentication/useAxiosAuth";
 
 interface CreateSopParams {
   formData: FormData;
@@ -61,5 +62,26 @@ export function useDeleteSop() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sops"] });
     },
+  });
+}
+
+
+// Authenticated
+
+export function useFetchAuthSops() {
+  const headers = useAxiosAuth()
+  return useQuery({
+    queryKey: ["auth-sops"],
+    queryFn: () => getAuthSops(headers),
+    enabled: !!headers,
+  });
+}
+
+export function useFetchAuthSop(reference: string) {
+  const headers = useAxiosAuth()
+  return useQuery({
+    queryKey: ["auth-sop", reference],
+    queryFn: () => getAuthSop(reference, headers),
+    enabled: !!headers && !!reference,
   });
 }

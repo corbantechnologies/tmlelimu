@@ -6,12 +6,14 @@ import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import { UpdateSopSchema } from "@/validation";
 import { useUpdateSop } from "@/hooks/sops/actions";
-import { Sops } from "@/services/sops";
+import { Sops, updateSops } from "@/services/sops";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import useAxiosAuth from "@/hooks/authentication/useAxiosAuth";
 
 export default function UpdateSop({ 
   sopData, 
@@ -28,33 +30,27 @@ export default function UpdateSop({
     title: sopData.title || "",
     description: sopData.description || "",
     file: null,
+    is_active: sopData.is_active !== undefined ? sopData.is_active : true,
   };
 
-  const getHeaders = () => {
-    // @ts-ignore
-    const token = session?.user?.accessToken || "";
-    return {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-  };
+  const headers = useAxiosAuth()
 
   const handleSubmit = async (values: any, { setSubmitting }: any) => {
     try {
       const formData = new FormData();
       formData.append("title", values.title);
       formData.append("description", values.description);
+      formData.append("is_active", String(values.is_active));
       
       // Only append file if changed
       if (values.file) {
         formData.append("file", values.file);
       }
 
-      await updateSop({ 
+      await updateSops({ 
         reference: sopData.reference, 
         formData, 
-        headers: getHeaders() 
+        headers 
       });
       
       toast.success("SOP updated successfully");
@@ -148,6 +144,23 @@ export default function UpdateSop({
             {errors.file && touched.file && (
               <p className="text-sm text-red-500">{String(errors.file)}</p>
             )}
+          </div>
+
+          <div className="flex flex-row items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="is_active" className="text-base text-zinc-700 font-medium">
+                Active Status
+              </Label>
+              <p className="text-sm text-zinc-500">
+                Determine if this SOP should be visible to employees immediately.
+              </p>
+            </div>
+            <Switch
+              id="is_active"
+              checked={values.is_active}
+              onCheckedChange={(checked) => setFieldValue("is_active", checked)}
+              className="data-[state=checked]:bg-[#004d40]"
+            />
           </div>
 
           <div className="pt-2">

@@ -5,33 +5,27 @@ import { Formik, Form } from "formik";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import { CreateSopSchema } from "@/validation";
-import { useCreateSop } from "@/hooks/sops/actions";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import useAxiosAuth from "@/hooks/authentication/useAxiosAuth";
+import { createSops } from "@/services/sops";
 
 export default function CreateSop({ onSuccess }: { onSuccess: () => void }) {
   const { data: session } = useSession();
-  const { mutateAsync: createSop, isPending } = useCreateSop();
   const [fileError, setFileError] = useState("");
 
   const initialValues = {
     title: "",
     description: "",
     file: null,
+    is_active: true,
   };
 
-  const getHeaders = () => {
-    // @ts-ignore
-    const token = session?.user?.accessToken || "";
-    return {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-  };
+  const headers = useAxiosAuth()
 
   const handleSubmit = async (values: any, { setSubmitting }: any) => {
     try {
@@ -45,8 +39,9 @@ export default function CreateSop({ onSuccess }: { onSuccess: () => void }) {
       formData.append("title", values.title);
       formData.append("description", values.description);
       formData.append("file", values.file);
+      formData.append("is_active", String(values.is_active));
 
-      await createSop({ formData, headers: getHeaders() });
+      await createSops(formData, headers)
       toast.success("SOP created successfully");
       onSuccess();
     } catch (error: any) {
@@ -138,13 +133,30 @@ export default function CreateSop({ onSuccess }: { onSuccess: () => void }) {
             )}
           </div>
 
+          <div className="flex flex-row items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="is_active" className="text-base text-zinc-700 font-medium">
+                Active Status
+              </Label>
+              <p className="text-sm text-zinc-500">
+                Determine if this SOP should be visible to employees immediately.
+              </p>
+            </div>
+            <Switch
+              id="is_active"
+              checked={values.is_active}
+              onCheckedChange={(checked) => setFieldValue("is_active", checked)}
+              className="data-[state=checked]:bg-[#004d40]"
+            />
+          </div>
+
           <div className="pt-2">
             <Button
               type="submit"
-              disabled={isSubmitting || isPending}
+              disabled={isSubmitting}
               className="w-full bg-[#004d40] hover:bg-[#00332b] text-white py-2.5 shadow-md transition-all"
             >
-              {isSubmitting || isPending ? "Uploading..." : "Upload SOP"}
+              {isSubmitting ? "Uploading..." : "Upload SOP"}
             </Button>
           </div>
         </Form>

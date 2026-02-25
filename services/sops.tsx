@@ -22,6 +22,7 @@ interface createSops {
     title: string;
     description: string;
     file: File; //file upload
+    is_active: boolean;
 }
 
 interface updateSops {
@@ -29,6 +30,7 @@ interface updateSops {
     title: string;
     description: string;
     file: File; //file upload
+    is_active: boolean;
 }
 
 export const getSops = async (): Promise<Sops[]> => {
@@ -75,4 +77,17 @@ export const deleteSops = async (
   headers: { headers: { Authorization: string } }
 ): Promise<void> => {
   await apiActions.delete(`/api/v1/sops/${reference}/`, headers);
+};
+
+
+export const getAuthSops = async (headers: { headers: { Authorization: string } }): Promise<Sops[]> => {
+  const response: AxiosResponse<PaginatedResponse<Sops>> =
+    await apiActions.get(`/api/v1/sops/`, headers);
+  return response.data.results ?? [];
+};
+
+export const getAuthSop = async (reference: string, headers: { headers: { Authorization: string } }): Promise<Sops> => {
+  const response: AxiosResponse<Sops> =
+    await apiActions.get(`/api/v1/sops/${reference}/`, headers);
+  return response.data;
 };
