@@ -1,9 +1,22 @@
 "use client";
 
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useFetchAuthSops } from "@/hooks/sops/actions";
 
 export default function HRDashboard() {
+  const { data: sopsData, isLoading } = useFetchAuthSops();
+
+  const { activeSops, inactiveSops } = useMemo(() => {
+    if (!sopsData) return { activeSops: 0, inactiveSops: 0 };
+    return {
+      activeSops: sopsData.filter((sop) => sop.is_active).length,
+      inactiveSops: sopsData.filter((sop) => !sop.is_active).length,
+    };
+  }, [sopsData]);
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
       <div className="flex justify-between items-center">
@@ -37,10 +50,27 @@ export default function HRDashboard() {
 
         <Card className="border-zinc-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">Pending SOP Approvals</CardTitle>
+            <CardTitle className="text-sm font-medium text-zinc-500 uppercase tracking-wider">SOP Library Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-amber-600">8</div>
+            {isLoading ? (
+              <div className="space-y-3 mt-1">
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-5 w-32" />
+              </div>
+            ) : (
+              <div>
+                <div className="text-4xl font-bold text-[#004d40]">
+                  {activeSops} <span className="text-xl font-medium text-emerald-600/60">Active</span>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="outline" className="bg-red-50 text-red-600 border-red-100 px-2 py-0.5 text-xs font-semibold">
+                    {inactiveSops} Inactive
+                  </Badge>
+                  <span className="text-xs text-zinc-400 font-medium">hidden from portal</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
