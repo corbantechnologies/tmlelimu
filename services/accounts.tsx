@@ -1,0 +1,65 @@
+"use client"
+
+import { apiActions, apiMultipartActions } from "@/tools/axios"
+import { AxiosResponse } from "axios";
+
+export interface User {
+    id: string;
+    email: string;
+    payroll_no: string;
+    first_name: string;
+    last_name: string;
+    is_staff: boolean;
+    is_superuser: boolean;
+    is_active: boolean;
+    is_admin: boolean;
+    is_deleted: boolean;
+    last_login: string;
+    is_employee: boolean;
+    is_manager: boolean;
+    is_trainer: boolean;
+    is_hod: boolean;
+    is_hr: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string;
+    reference: string;
+}
+
+
+export interface forgotPassword {
+  email: string;
+}
+
+export interface resetPassword {
+  code: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface updateUser {
+    first_name?: string;
+    last_name?: string;
+}
+
+
+export const getAccount = async (userId: string, headers: { headers: { Authorization: string } }): Promise<User> => {
+    const response: AxiosResponse<User> = await apiActions.get(`/api/v1/auth/${userId}/`, headers)
+    return response.data
+}
+
+export const updateAccount = async (userId: string, formData: updateUser | FormData, headers: { headers: { Authorization: string } }): Promise<User> => {
+    const response: AxiosResponse<User> = await apiMultipartActions.patch(`/api/v1/auth/${userId}/`, formData, headers)
+    return response.data
+}
+
+export const forgotPassword = async (data: forgotPassword): Promise<User> => {
+    const response: AxiosResponse<User> = await apiActions.post(`/api/v1/auth/password/forgot/`, data)
+    return response.data
+}
+
+export const resetPassword = async (data: resetPassword): Promise<User> => {
+    const response: AxiosResponse<User> = await apiActions.post(`/api/v1/auth/password/reset/confirm/`, data)
+    return response.data
+}
