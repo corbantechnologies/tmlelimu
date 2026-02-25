@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Settings2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useDeleteSop, useFetchAuthSops } from "@/hooks/sops/actions";
+import { Plus, Settings2, MoreHorizontal, Pencil, EyeOff, Eye } from "lucide-react";
+import { useUpdateSop, useFetchAuthSops } from "@/hooks/sops/actions";
 import { Sops } from "@/services/sops";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -49,26 +50,31 @@ import useAxiosAuth from "@/hooks/authentication/useAxiosAuth";
 export default function HRSopsPage() {
   const { data: session } = useSession();
   const { data: sopsData, isLoading, refetch: refetchSops } = useFetchAuthSops();
-  const { mutateAsync: deleteSop } = useDeleteSop();
+  const { mutateAsync: updateSop } = useUpdateSop();
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingSop, setEditingSop] = useState<Sops | null>(null);
-  const [deletingSop, setDeletingSop] = useState<Sops | null>(null);
+  const [togglingSop, setTogglingSop] = useState<Sops | null>(null);
 
   const headers = useAxiosAuth()
 
-  const handleDelete = async () => {
-    if (!deletingSop) return;
+  const handleToggleActive = async () => {
+    if (!togglingSop) return;
     try {
-      await deleteSop({
-        reference: deletingSop.reference,
+      const formData = new FormData();
+      formData.append("is_active", String(!togglingSop.is_active));
+      
+      await updateSop({
+        reference: togglingSop.reference,
+        formData,
         headers,
       });
-      toast.success("SOP deleted successfully");
+      toast.success(`SOP ${togglingSop.is_active ? 'deactivated' : 'activated'} successfully`);
+      refetchSops();
     } catch (e: any) {
-      toast.error(e?.response?.data?.detail || "Failed to delete SOP");
+      toast.error(e?.response?.data?.detail || "Failed to update SOP status");
     } finally {
-      setDeletingSop(null);
+      setTogglingSop(null);
     }
   };
 
@@ -118,7 +124,8 @@ export default function HRSopsPage() {
             <TableHeader className="bg-zinc-50">
               <TableRow>
                 <TableHead className="w-[30%]">Title</TableHead>
-                <TableHead className="w-[40%]">Description</TableHead>
+                <TableHead className="w-[30%]">Description</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Date Uploaded</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -132,6 +139,14 @@ export default function HRSopsPage() {
                     </TableCell>
                     <TableCell className="text-zinc-500 truncate max-w-[300px]">
                       {sop.description}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={sop.is_active ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-red-50 text-red-700 border-red-200"}
+                      >
+                        {sop.is_active ? "Active" : "Inactive"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-zinc-500">
                       {new Date(sop.created_at).toLocaleDateString()}
@@ -159,11 +174,11 @@ export default function HRSopsPage() {
                             </DropdownMenuItem>
                           </a>
                           <DropdownMenuItem
-                            onClick={() => setDeletingSop(sop)}
-                            className="text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer font-medium"
+                            onClick={() => setTogglingSop(sop)}
+                            className={sop.is_active ? "text-amber-600 focus:bg-amber-50 focus:text-amber-600 cursor-pointer font-medium" : "text-emerald-600 focus:bg-emerald-50 focus:text-emerald-600 cursor-pointer font-medium"}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            {sop.is_active ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+                            {sop.is_active ? "Deactivate" : "Activate"}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -200,26 +215,26 @@ export default function HRSopsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Alert */}
-      <AlertDialog open={!!deletingSop} onOpenChange={(open) => !open && setDeletingSop(null)}>
+      {/* Toggle Confirmation Alert */}
+      <AlertDialog open={!!togglingSop} onOpenChange={(open) => !open && setTogglingSop(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {togglingSop?.is_active ? "Deactivate SOP?" : "Activate SOP?"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the 
-              <span className="font-semibold text-zinc-900 mx-1">
-                {deletingSop?.title}
-              </span> 
-              SOP and remove its data from our servers.
+              {togglingSop?.is_active 
+                ? "This will hide the SOP from employees, but it will remain accessible to HR administrators." 
+                : "This will make the SOP visible to all employees again."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleToggleActive}
+              className={togglingSop?.is_active ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
             >
-              Continue
+              Confirm
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
