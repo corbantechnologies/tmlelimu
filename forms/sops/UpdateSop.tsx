@@ -5,7 +5,6 @@ import { Formik, Form } from "formik";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import { UpdateSopSchema } from "@/validation";
-import { useUpdateSop } from "@/hooks/sops/actions";
 import { Sops, updateSops } from "@/services/sops";
 
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,6 @@ export default function UpdateSop({
   onSuccess: () => void;
 }) {
   const { data: session } = useSession();
-  const { mutateAsync: updateSop, isPending } = useUpdateSop();
   const [fileError, setFileError] = useState("");
 
   const initialValues = {
@@ -47,11 +45,7 @@ export default function UpdateSop({
         formData.append("file", values.file);
       }
 
-      await updateSops({ 
-        reference: sopData.reference, 
-        formData, 
-        headers 
-      });
+      await updateSops(sopData.reference, formData, headers);
       
       toast.success("SOP updated successfully");
       onSuccess();
@@ -166,10 +160,10 @@ export default function UpdateSop({
           <div className="pt-2">
             <Button
               type="submit"
-              disabled={isSubmitting || isPending}
+              disabled={isSubmitting}
               className="w-full bg-[#004d40] hover:bg-[#00332b] text-white py-2.5 shadow-md transition-all"
             >
-              {isSubmitting || isPending ? "Updating..." : "Update SOP"}
+              {isSubmitting ? "Updating..." : "Update SOP"}
             </Button>
           </div>
         </Form>
