@@ -56,10 +56,13 @@ export default function HRSopsPage() {
   const [editingSop, setEditingSop] = useState<Sops | null>(null);
   const [togglingSop, setTogglingSop] = useState<Sops | null>(null);
 
+  const [isToggling, setIsToggling] = useState(false);
+
   const headers = useAxiosAuth()
 
   const handleToggleActive = async () => {
     if (!togglingSop) return;
+    setIsToggling(true);
     try {
       const formData = new FormData();
       formData.append("is_active", String(!togglingSop.is_active));
@@ -74,6 +77,7 @@ export default function HRSopsPage() {
     } catch (e: any) {
       toast.error(e?.response?.data?.detail || "Failed to update SOP status");
     } finally {
+      setIsToggling(false);
       setTogglingSop(null);
     }
   };
@@ -216,7 +220,9 @@ export default function HRSopsPage() {
       </Dialog>
 
       {/* Toggle Confirmation Alert */}
-      <AlertDialog open={!!togglingSop} onOpenChange={(open) => !open && setTogglingSop(null)}>
+      <AlertDialog open={!!togglingSop} onOpenChange={(open) => {
+        if (!isToggling && !open) setTogglingSop(null);
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
@@ -229,12 +235,13 @@ export default function HRSopsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isToggling}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleToggleActive}
+              disabled={isToggling}
               className={togglingSop?.is_active ? "bg-amber-600 hover:bg-amber-700 text-white" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
             >
-              Confirm
+              {isToggling ? "Updating..." : "Confirm"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
