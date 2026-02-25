@@ -7,6 +7,7 @@ import { Sops } from "@/services/sops";
 
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import Navbar from "@/components/public/Navbar";
 
 export default function SOpsPortal() {
   const { data: sopsData, isLoading } = useFetchSops();
@@ -24,8 +25,10 @@ export default function SOpsPortal() {
   }, [sopsData, searchTerm]);
 
   return (
-    <div className="min-h-screen bg-zinc-50 pb-20">
-      {/* Hero Banner Section */}
+    <div className="min-h-screen bg-zinc-50 flex flex-col">
+      <Navbar />
+      <div className="flex-1 pb-20">
+        {/* Hero Banner Section */}
       <div className="bg-[#004d40] text-white pt-24 pb-16 px-6 md:px-12 relative overflow-hidden">
         {/* Abstract Background Design */}
         <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
@@ -133,6 +136,7 @@ export default function SOpsPortal() {
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   );
