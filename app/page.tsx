@@ -1,27 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
+import Navbar from "@/components/public/Navbar";
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="flex items-center justify-between px-6 py-6 border-b border-zinc-100 md:px-12 backdrop-blur-sm sticky top-0 z-50 bg-white/80">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-[#004d40] rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">T</span>
-          </div>
-          <span className="text-xl font-bold tracking-tight text-[#004d40]">
-            Tamarind <span className="text-amber-600">Elimu</span>
-          </span>
-        </div>
-        <div className="hidden md:flex items-center gap-8">
-          <Link href="#features" className="text-sm font-medium text-zinc-600 hover:text-[#004d40] transition-colors">Features</Link>
-          <Link href="#about" className="text-sm font-medium text-zinc-600 hover:text-[#004d40] transition-colors">About</Link>
-          <Link href="/login" className="px-5 py-2.5 text-sm font-semibold text-white bg-[#004d40] rounded-full hover:bg-[#00332b] transition-all shadow-lg hover:shadow-xl">
-            Log In
-          </Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="flex-grow">
         {/* Hero Section */}

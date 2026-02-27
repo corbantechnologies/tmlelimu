@@ -50,4 +50,16 @@ const ResetPasswordSchema = Yup.object().shape({
         .oneOf([Yup.ref("password")], "Passwords do not match"),
 });
 
-export { RegistrationSchema, ProfileSchema, LoginSchema, ForgotPasswordSchema, ResetPasswordSchema };
+const CreateSopSchema = Yup.object().shape({
+    title: Yup.string().required("Title is required"),
+    description: Yup.string().required("Description is required"),
+    file: Yup.mixed().required("A document file is required"),
+});
+
+const UpdateSopSchema = Yup.object().shape({
+    title: Yup.string().required("Title is required"),
+    description: Yup.string().required("Description is required"),
+    file: Yup.mixed().nullable(), // Optional for updates
+});
+
+export { RegistrationSchema, ProfileSchema, LoginSchema, ForgotPasswordSchema, ResetPasswordSchema, CreateSopSchema, UpdateSopSchema };
